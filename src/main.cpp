@@ -11,11 +11,11 @@
 //Global sensor objects
 BME280 MyBME280;
 CCS811 MyCCS811(CCS811_ADDR);
+HTTPClient http;
 
 const char *ssid = "Shreks andra Nätverk";
 const char *password = "Pepparkakan";
 
-void printData();
 void setup()
 {
 
@@ -93,7 +93,7 @@ void setup()
 
 void loop()
 {
-
+  String json;
   if (MyCCS811.dataAvailable())
   {
     //Calling this function updates the global tVOC and eCO2 variables
@@ -129,19 +129,9 @@ void loop()
     doc["CO2"] = CO2;
     doc["TVOC"] = TVOC;
 
-    // Serialize JSON document
-    String json;
     serializeJson(doc, json);
     Serial.println(json);
-    /*
-    Serial.println();
-    Serial.print("Applying new values (deg C, %): ");
-    Serial.print(BMEtempC);
-    Serial.print(",");
-    Serial.println(BMEhumid);
-    Serial.println();
-    */
-    //This sends the temperature data to the CCS811
+
     MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
   }
   else if (MyCCS811.checkForStatusError())
@@ -149,38 +139,35 @@ void loop()
     Serial.println(MyCCS811.getErrorRegister()); //Prints whatever CSS811 error flags are detected
   }
 
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    http.begin("http://192.168.10.127:5000/insert");    //Specify destination for HTTP request
+    http.addHeader("Content-Type", "application/json"); //Specify content-type header
+    int httpResponseCode = http.POST(json);             //Send the actual POST request
+
+    if (httpResponseCode > 0)
+    {
+
+      String response = http.getString(); //Get the response to the request
+
+      Serial.println(httpResponseCode); //Print return code
+      Serial.println(response);         //Print request answer
+    }
+    else
+    {
+
+      Serial.print("Error on sending POST: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end(); //Free resources
+  }
+  else
+  {
+
+    Serial.println("Error in WiFi connection");
+  }
+
   delay(5000); //Wait for next reading
 
 } //End void loop
-
-void printData()
-{
-
-  Serial.print("CO2 (");
-  Serial.print(MyCCS811.getCO2());
-  Serial.print(")ppm");
-
-  Serial.print(" TVOC (");
-  Serial.print(MyCCS811.getTVOC());
-  Serial.print(")ppb,");
-  //CCS811 sensor
-
-  Serial.print(" temp (");
-  Serial.print(MyBME280.readTempC(), 1);
-  Serial.print(")C");
-
-  Serial.print(" pressure (");
-  Serial.print((MyBME280.readFloatPressure() / 100), 2);
-  Serial.print(")hPa");
-
-  Serial.print(" altitude (");
-  Serial.print(MyBME280.readFloatAltitudeMeters(), 2);
-  Serial.print(")m");
-
-  Serial.print(" humidity (");
-  Serial.print(MyBME280.readFloatHumidity(), 0);
-  Serial.print(")%");
-  //BME280 sensor
-
-  Serial.println();
-}
