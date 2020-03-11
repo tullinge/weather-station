@@ -141,7 +141,9 @@ void loop()
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    http.begin("http://192.168.10.127:5000/insert");    //Specify destination for HTTP request
+    delay(500);
+    http.begin("http://192.168.10.127:5000/insert");
+    delay(500);                                         //Specify destination for HTTP request
     http.addHeader("Content-Type", "application/json"); //Specify content-type header
     int httpResponseCode = http.POST(json);             //Send the actual POST request
 
