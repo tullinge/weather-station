@@ -16,6 +16,10 @@ HTTPClient http;
 const char *ssid = "Shreks andra Nätverk";
 const char *password = "Pepparkakan";
 
+int wifiInt = 0;
+int digitalRainSensorPin = 14;
+boolean bIsRaining = false;
+
 void setup()
 {
 
@@ -94,12 +98,21 @@ void setup()
 void loop()
 {
   String json;
+  String RAIN;
+  bIsRaining = !(digitalRead(digitalRainSensorPin));
+
+  if (bIsRaining == true)
+  {
+    RAIN = "true";
+  }
+  else
+  {
+    RAIN = "false";
+  }
+
   if (MyCCS811.dataAvailable())
   {
-    //Calling this function updates the global tVOC and eCO2 variables
     MyCCS811.readAlgorithmResults();
-    //printData fetches the values of tVOC and eCO2
-    //printData();
 
     float BMEtempC = MyBME280.readTempC();
     String TEMP = String(BMEtempC, DEC);
@@ -107,10 +120,8 @@ void loop()
     float BMEhumid = MyBME280.readFloatHumidity();
     String HUM = String(BMEhumid, DEC);
 
-    //altering values from set enviromentaldata^^
-
-    int BMEalt = MyBME280.readFloatAltitudeMeters();
-    String ALT = String(BMEalt, DEC);
+    //int BMEalt = MyBME280.readFloatAltitudeMeters();
+    //String ALT = String(BMEalt, DEC);
 
     int BMEpres = MyBME280.readFloatPressure();
     String PRES = String(BMEpres, DEC);
@@ -124,10 +135,11 @@ void loop()
     DynamicJsonDocument doc(2048);
     doc["temperature"] = TEMP;
     doc["Humidity"] = HUM;
-    doc["Altitude"] = ALT;
+    //doc["Altitude"] = ALT;
     doc["Pressure"] = PRES;
     doc["CO2"] = CO2;
     doc["TVOC"] = TVOC;
+    doc["Rain"] = RAIN;
 
     serializeJson(doc, json);
     Serial.println(json);
@@ -138,37 +150,35 @@ void loop()
   {
     Serial.println(MyCCS811.getErrorRegister()); //Prints whatever CSS811 error flags are detected
   }
-
-  if (WiFi.status() == WL_CONNECTED)
+  if (wifiInt == 3)
   {
-    delay(500);
-    http.begin("http://192.168.10.127:5000/insert");
-    delay(500);                                         //Specify destination for HTTP request
-    http.addHeader("Content-Type", "application/json"); //Specify content-type header
-    int httpResponseCode = http.POST(json);             //Send the actual POST request
-
-    if (httpResponseCode > 0)
+    if (WiFi.status() == WL_CONNECTED)
     {
+      delay(500);
+      http.begin("http://192.168.10.127:5000/insert");
+      delay(500);                                         //Specify destination for HTTP request
+      http.addHeader("Content-Type", "application/json"); //Specify content-type header
+      int httpResponseCode = http.POST(json);             //Send the actual POST request
 
-      String response = http.getString(); //Get the response to the request
+      if (httpResponseCode > 0)
+      {
+        String response = http.getString(); //Get the response to the request
+        Serial.println(httpResponseCode);   //Print return code
+        Serial.println(response);           //Print request answer
+      }
+      else
+      {
+        Serial.print("Error on sending POST: ");
+        Serial.println(httpResponseCode);
+      }
 
-      Serial.println(httpResponseCode); //Print return code
-      Serial.println(response);         //Print request answer
+      http.end(); //Free resources
     }
     else
     {
-
-      Serial.print("Error on sending POST: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end(); //Free resources
-  }
-  else
-  {
-
-    Serial.println("Error in WiFi connection");
-  }
+      Serial.println("Error in WiFi connection");
+    } //end wifi.status if
+  }   //end Wifi "timer" if
 
   delay(5000); //Wait for next reading
 
