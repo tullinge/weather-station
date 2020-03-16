@@ -7,22 +7,27 @@
 #include <HTTPClient.h>
 
 #define CCS811_ADDR 0x5B
-
 //Global sensor objects
 BME280 MyBME280;
 CCS811 MyCCS811(CCS811_ADDR);
-HTTPClient http;
 
+//wind sensor
+const int windSensorPin = 32;
+
+//Server connection
+HTTPClient http;
+int wifiInt = 0;
+
+//Network
 const char *ssid = "Shreks andra Nätverk";
 const char *password = "Pepparkakan";
 
-int wifiInt = 0;
-int digitalRainSensorPin = 14;
+//Rain sensor
+int digitalRainSensorPin = 12;
 boolean bIsRaining = false;
 
 void setup()
 {
-
   Serial.begin(9600);
 
   WiFi.begin(ssid, password);
@@ -90,6 +95,7 @@ void setup()
   {
     Serial.println("BME280 online");
   }
+  Serial.println();
   Serial.println("Sensor operational!");
   Serial.println();
 
@@ -109,6 +115,24 @@ void loop()
   {
     RAIN = "false";
   }
+
+  float windSpeed;
+  float vindSensorValue = analogRead(windSensorPin);
+  float vindSensorVoltage = vindSensorValue * (0.5 / 350.0);
+
+  Serial.println();
+
+  if (vindSensorVoltage <= 0.5)
+  {
+    windSpeed = 0;
+  }
+  else
+  {
+    // Convert voltage to 0 to 1.6, then multiply by 20 to make it 0 to 32.
+    windSpeed = (vindSensorVoltage - 0.5) * 20;
+  }
+
+    String WIND = String(windSpeed, DEC);
 
   if (MyCCS811.dataAvailable())
   {
@@ -140,6 +164,7 @@ void loop()
     doc["CO2"] = CO2;
     doc["TVOC"] = TVOC;
     doc["Rain"] = RAIN;
+    doc["wind"] = WIND;
 
     serializeJson(doc, json);
     Serial.println(json);
