@@ -14,27 +14,35 @@ CCS811 MyCCS811(CCS811_ADDR);
 //wind sensor
 const int windSensorPin = 32;
 
-//Server connection
+float voltageMin = 0.4;
+float windSpeedMin = 0;
+
+float voltageMax = 2.0;
+float windSpeedMax = 32;
+
+float windSpeed;
+
+//Server connection +Json
 HTTPClient http;
 int wifiInt = 0;
+int dot = 0;
 
 //Network
 const char *ssid = "Shreks andra Nätverk";
 const char *password = "Pepparkakan";
 
 //Rain sensor
-int digitalRainSensorPin = 12;
-boolean bIsRaining = false;
+const int rainSensorPin = 27;
+boolean isRaining = false;
+String RAIN;
 
 void setup()
 {
   Serial.begin(9600);
-
+  delay(500);
   WiFi.begin(ssid, password);
-  Serial.println("");
+  Serial.println();
   Serial.println("Trying to connect to WiFi");
-
-  int dot = 0;
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -96,18 +104,17 @@ void setup()
     Serial.println("BME280 online");
   }
   Serial.println();
-  Serial.println("Sensor operational!");
+  //Serial.println("Sensor operational!");
   Serial.println();
 
 } //End setup
 
 void loop()
 {
-  String json;
-  String RAIN;
-  bIsRaining = !(digitalRead(digitalRainSensorPin));
+  String json; //json decleration
+  isRaining = !(digitalRead(rainSensorPin));
 
-  if (bIsRaining == true)
+  if (isRaining == true)
   {
     RAIN = "true";
   }
@@ -116,23 +123,22 @@ void loop()
     RAIN = "false";
   }
 
-  float windSpeed;
-  float vindSensorValue = analogRead(windSensorPin);
-  float vindSensorVoltage = vindSensorValue * (0.5 / 350.0);
+  float sensorValue = analogRead(windSensorPin);
+  float sensorVoltage = sensorValue * (0.4 / 340);
 
   Serial.println();
 
-  if (vindSensorVoltage <= 0.5)
+  if (sensorVoltage <= 0.42)
   {
     windSpeed = 0;
   }
   else
   {
     // Convert voltage to 0 to 1.6, then multiply by 20 to make it 0 to 32.
-    windSpeed = (vindSensorVoltage - 0.5) * 20;
+    windSpeed = (sensorVoltage - voltageMin) * windSpeedMax / (voltageMax - voltageMin);
   }
 
-    String WIND = String(windSpeed, DEC);
+  String WIND = String(windSpeed, DEC);
 
   if (MyCCS811.dataAvailable())
   {
@@ -157,17 +163,16 @@ void loop()
     String TVOC = String(CCS811TVOC, DEC);
 
     DynamicJsonDocument doc(2048);
-    doc["temperature"] = TEMP;
-    doc["Humidity"] = HUM;
-    //doc["Altitude"] = ALT;
-    doc["Pressure"] = PRES;
+    doc["Temp"] = TEMP;
+    doc["Hum"] = HUM;
+    //doc["Alt"] = ALT;
+    doc["Press"] = PRES;
     doc["CO2"] = CO2;
     doc["TVOC"] = TVOC;
     doc["Rain"] = RAIN;
-    doc["wind"] = WIND;
+    doc["Wind"] = WIND;
 
     serializeJson(doc, json);
-    Serial.println(json);
 
     MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
   }
@@ -175,36 +180,35 @@ void loop()
   {
     Serial.println(MyCCS811.getErrorRegister()); //Prints whatever CSS811 error flags are detected
   }
-  if (wifiInt == 3)
+
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (WiFi.status() == WL_CONNECTED)
+    delay(500);
+    http.begin("http://92.35.104.150:69/measurements");
+    delay(500); //Specify destination for HTTP request
+    http.addHeader("Content-Type", "application/json");
+    delay(500);                             //Specify content-type header
+    int httpResponseCode = http.POST(json); //Send the actual POST request
+
+    if (httpResponseCode > 0)
     {
-      delay(500);
-      http.begin("http://192.168.10.127:5000/insert");
-      delay(500);                                         //Specify destination for HTTP request
-      http.addHeader("Content-Type", "application/json"); //Specify content-type header
-      int httpResponseCode = http.POST(json);             //Send the actual POST request
-
-      if (httpResponseCode > 0)
-      {
-        String response = http.getString(); //Get the response to the request
-        Serial.println(httpResponseCode);   //Print return code
-        Serial.println(response);           //Print request answer
-      }
-      else
-      {
-        Serial.print("Error on sending POST: ");
-        Serial.println(httpResponseCode);
-      }
-
-      http.end(); //Free resources
+      String response = http.getString(); //Get the response to the request
+      Serial.println(httpResponseCode);   //Print return code
+      Serial.println(response);           //Print request answer
     }
     else
     {
-      Serial.println("Error in WiFi connection");
-    } //end wifi.status if
-  }   //end Wifi "timer" if
+      Serial.print("Error on sending POST: ");
+      Serial.println(httpResponseCode);
+    }
 
-  delay(5000); //Wait for next reading
+    http.end(); //Free resources
+  }             //end wifi.status if
+  else
+  {
+    Serial.println("Error in WiFi connection");
+  }
+  Serial.println(json);
+  delay(10000); //Wait for next reading
 
 } //End void loop
