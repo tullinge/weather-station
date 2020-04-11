@@ -32,8 +32,8 @@ int watchdogCount = 0;
 int httpResponseCode;
 
 //Network
-const char *ssid = "Shreks andra Nätverk";
-const char *password = "Pepparkakan";
+const char *ssid = "Shreks andra Nätverk"; //Insert ssid here
+const char *password = "Pepparkakan";      //Insert password
 
 //Rain sensor
 const int rainSensorPin = 27;
@@ -114,8 +114,7 @@ void setup()
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    http1.begin("http://api.ipify.org/"); //?format=json
-    delay(500);
+    http1.begin("http://api.ipify.org/");
     errorCode = http1.GET();
     IP = http1.getString();
 
@@ -148,8 +147,6 @@ void loop()
   float sensorValue = analogRead(windSensorPin);
   float sensorVoltage = sensorValue * (0.4 / 340);
 
-  Serial.println();
-
   if (sensorVoltage <= 0.42)
   {
     windSpeed = 0;
@@ -165,15 +162,13 @@ void loop()
   MyCCS811.readAlgorithmResults();
   delay(200);
 
-  int BMEtempC = MyBME280.readTempC();
+  float BMEtempC = MyBME280.readTempC();
   String TEMP = String(BMEtempC, DEC);
 
   float BMEhumid = MyBME280.readFloatHumidity();
   String HUM = String(BMEhumid, DEC);
-  MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
 
-  //int BMEalt = MyBME280.readFloatAltitudeMeters();
-  //String ALT = String(BMEalt, DEC);
+  MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
 
   int BMEpres = MyBME280.readFloatPressure();
   String PRES = String(BMEpres, DEC);
@@ -187,7 +182,6 @@ void loop()
   DynamicJsonDocument doc(2048);
   doc["Temp"] = TEMP;
   doc["Hum"] = HUM;
-  //doc["Alt"] = ALT;
   doc["Press"] = PRES;
   doc["CO2"] = CO2;
   doc["TVOC"] = TVOC;
@@ -195,9 +189,7 @@ void loop()
   doc["Wind"] = WIND;
 
   serializeJson(doc, json);
-  Serial.print("Json that has been sent: ");
-  Serial.println(json);
-  Serial.println();
+
   if (WiFi.status() == WL_CONNECTED)
   {
     http.begin("http://" + IP + ":69/measurements");
@@ -205,6 +197,9 @@ void loop()
     httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
     {
+
+      Serial.print("Json has been sent: ");
+      Serial.println(json);
       String response = http.getString(); //Get the response to the request
       Serial.print("Status code: ");
       Serial.println(httpResponseCode); //Print return code
