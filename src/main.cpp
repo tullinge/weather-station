@@ -23,9 +23,13 @@ float windSpeedMax = 32;
 float windSpeed;
 
 //Server connection +Json
-HTTPClient http;
+HTTPClient http, http1;
 int wifiInt = 0;
 int dot = 0;
+String IP;
+int errorCode;
+int watchdogCount = 0;
+int httpResponseCode;
 
 //Network
 const char *ssid = "Shreks andra Nätverk";
@@ -106,6 +110,24 @@ void setup()
   Serial.println();
   //Serial.println("Sensor operational!");
   Serial.println();
+  Serial.println("Getting network IP-address");
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    http1.begin("http://api.ipify.org/"); //?format=json
+    delay(500);
+    errorCode = http1.GET();
+    IP = http1.getString();
+
+    Serial.print("Status Code: ");
+    Serial.println(errorCode);
+
+    Serial.print("IP-address ");
+    Serial.println(IP);
+
+    http1.end();
+    Serial.println();
+  } //end if getting IP-address
 
 } //End setup
 
@@ -134,67 +156,60 @@ void loop()
   }
   else
   {
-    // Convert voltage to 0 to 1.6, then multiply by 20 to make it 0 to 32.
     windSpeed = (sensorVoltage - voltageMin) * windSpeedMax / (voltageMax - voltageMin);
   }
 
   String WIND = String(windSpeed, DEC);
 
-  if (MyCCS811.dataAvailable())
-  {
-    MyCCS811.readAlgorithmResults();
+  delay(200);
+  MyCCS811.readAlgorithmResults();
+  delay(200);
 
-    float BMEtempC = MyBME280.readTempC();
-    String TEMP = String(BMEtempC, DEC);
+  int BMEtempC = MyBME280.readTempC();
+  String TEMP = String(BMEtempC, DEC);
 
-    float BMEhumid = MyBME280.readFloatHumidity();
-    String HUM = String(BMEhumid, DEC);
+  float BMEhumid = MyBME280.readFloatHumidity();
+  String HUM = String(BMEhumid, DEC);
+  MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
 
-    //int BMEalt = MyBME280.readFloatAltitudeMeters();
-    //String ALT = String(BMEalt, DEC);
+  //int BMEalt = MyBME280.readFloatAltitudeMeters();
+  //String ALT = String(BMEalt, DEC);
 
-    int BMEpres = MyBME280.readFloatPressure();
-    String PRES = String(BMEpres, DEC);
+  int BMEpres = MyBME280.readFloatPressure();
+  String PRES = String(BMEpres, DEC);
 
-    int CCS811CO2 = MyCCS811.getCO2();
-    String CO2 = String(CCS811CO2, DEC);
+  int CCS811CO2 = MyCCS811.getCO2();
+  String CO2 = String(CCS811CO2, DEC);
 
-    int CCS811TVOC = MyCCS811.getTVOC();
-    String TVOC = String(CCS811TVOC, DEC);
+  int CCS811TVOC = MyCCS811.getTVOC();
+  String TVOC = String(CCS811TVOC, DEC);
 
-    DynamicJsonDocument doc(2048);
-    doc["Temp"] = TEMP;
-    doc["Hum"] = HUM;
-    //doc["Alt"] = ALT;
-    doc["Press"] = PRES;
-    doc["CO2"] = CO2;
-    doc["TVOC"] = TVOC;
-    doc["Rain"] = RAIN;
-    doc["Wind"] = WIND;
+  DynamicJsonDocument doc(2048);
+  doc["Temp"] = TEMP;
+  doc["Hum"] = HUM;
+  //doc["Alt"] = ALT;
+  doc["Press"] = PRES;
+  doc["CO2"] = CO2;
+  doc["TVOC"] = TVOC;
+  doc["Rain"] = RAIN;
+  doc["Wind"] = WIND;
 
-    serializeJson(doc, json);
-
-    MyCCS811.setEnvironmentalData(BMEhumid, BMEtempC);
-  }
-  else if (MyCCS811.checkForStatusError())
-  {
-    Serial.println(MyCCS811.getErrorRegister()); //Prints whatever CSS811 error flags are detected
-  }
-
+  serializeJson(doc, json);
+  Serial.print("Json that has been sent: ");
+  Serial.println(json);
+  Serial.println();
   if (WiFi.status() == WL_CONNECTED)
   {
-    delay(500);
-    http.begin("http://92.35.104.150:69/measurements");
-    delay(500); //Specify destination for HTTP request
+    http.begin("http://" + IP + ":69/measurements");
     http.addHeader("Content-Type", "application/json");
-    delay(500);                             //Specify content-type header
-    int httpResponseCode = http.POST(json); //Send the actual POST request
-
+    httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
     {
       String response = http.getString(); //Get the response to the request
-      Serial.println(httpResponseCode);   //Print return code
-      Serial.println(response);           //Print request answer
+      Serial.print("Status code: ");
+      Serial.println(httpResponseCode); //Print return code
+      Serial.print("Response: ");
+      Serial.println(response); //Print request answer
     }
     else
     {
@@ -208,7 +223,17 @@ void loop()
   {
     Serial.println("Error in WiFi connection");
   }
-  Serial.println(json);
+  if (httpResponseCode != 200)
+  {
+    watchdogCount++;
+    Serial.print("Times failed to connect: ");
+    Serial.println(watchdogCount);
+    if (watchdogCount == 3)
+    {
+      ESP.restart();
+    }
+  } //End if watchdog
+
   delay(10000); //Wait for next reading
 
 } //End void loop
