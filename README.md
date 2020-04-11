@@ -1,7 +1,4 @@
 # weather-station
-
-**Version 1.0.0**
-
 ## Requirements
 - VS Code
 - C++
