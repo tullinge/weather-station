@@ -6,7 +6,7 @@ This repository is for the weather station project that Oskar and Max made in c+
 
 
 ## Requirements
-- Visual Studio 
+- VS Code
 - C++
 - platformIO 
 - C++ libraties (Adafruit CCS811 Library, ArduinoJson, SparkFun BME280, SparkFun CCS811 Arduino Library)
