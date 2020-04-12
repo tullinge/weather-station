@@ -1,4 +1,4 @@
-# weather-station
+# Weather Station
 ## Requirements
 - VS Code
 - C++
