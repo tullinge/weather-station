@@ -12,4 +12,5 @@ To use the source code it is recommended to use Visual Studios with the extensio
 
 ## Contributors
 - Oskar Löf (JoeMamasXD) <Oskar.lof@skola.botkyrka.se>
+- Max Lundberg (Fajterman) <Max.lunberg@skola.botkyrka.se>
 
