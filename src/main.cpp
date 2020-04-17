@@ -24,7 +24,6 @@ float windSpeed;
 
 //Server connection +Json
 HTTPClient http, http1;
-int wifiInt = 0;
 int dot = 0;
 String IP;
 int errorCode;
@@ -40,13 +39,22 @@ const int rainSensorPin = 27;
 boolean isRaining = false;
 String RAIN;
 
+//LED
+int ledPinGreen = 25;
+int ledPinRed = 19;
+
 void setup()
 {
   Serial.begin(9600);
+
   delay(500);
   WiFi.begin(ssid, password);
+
   Serial.println();
   Serial.println("Trying to connect to WiFi");
+
+  pinMode(ledPinGreen, OUTPUT);
+  pinMode(ledPinRed, OUTPUT);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -54,7 +62,7 @@ void setup()
     Serial.println(".");
     dot++;
     delay(500);
-    if (dot == 24)
+    if (dot == 12)
     {
       break;
     }
@@ -62,6 +70,9 @@ void setup()
   if (WiFi.status() != WL_CONNECTED)
   {
     Serial.println("Failed to connect to WiFi");
+    digitalWrite(ledPinRed, HIGH);
+    while (1)
+      ;
   }
   else
   {
@@ -77,6 +88,7 @@ void setup()
   if (!MyCCS811.begin())
   {
     Serial.println("Problem with CCS811 ");
+    digitalWrite(ledPinRed, HIGH);
     while (1)
       ;
   }
@@ -100,6 +112,7 @@ void setup()
   if (!MyBME280.begin())
   {
     Serial.println("Problem with BME280");
+    digitalWrite(ledPinRed, HIGH);
     while (1)
       ;
   }
@@ -108,7 +121,7 @@ void setup()
     Serial.println("BME280 online");
   }
   Serial.println();
-  //Serial.println("Sensor operational!");
+  Serial.println("Sensor operational!");
   Serial.println();
   Serial.println("Getting network IP-address");
 
@@ -197,14 +210,19 @@ void loop()
     httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
     {
+      digitalWrite(ledPinRed, LOW); //reseting error LED
+      watchdogCount = 0;            //reseting watchdog
 
-      Serial.print("Json has been sent: ");
+      Serial.print("Json sent: ");
       Serial.println(json);
       String response = http.getString(); //Get the response to the request
       Serial.print("Status code: ");
       Serial.println(httpResponseCode); //Print return code
       Serial.print("Response: ");
-      Serial.println(response); //Print request answer
+      Serial.println(response);        //Print request answer
+      digitalWrite(ledPinGreen, HIGH); //Physical LED showing it is sent
+      delay(3000);
+      digitalWrite(ledPinGreen, LOW);
     }
     else
     {
@@ -220,11 +238,14 @@ void loop()
   }
   if (httpResponseCode != 200)
   {
+    digitalWrite(ledPinRed, HIGH);
     watchdogCount++;
-    Serial.print("Times failed to connect: ");
-    Serial.println(watchdogCount);
+    Serial.print("***Failed to connect: ");
+    Serial.print(watchdogCount);
+    Serial.println(" / 3***");
     if (watchdogCount == 3)
     {
+      digitalWrite(ledPinRed, LOW);
       ESP.restart();
     }
   } //End if watchdog
