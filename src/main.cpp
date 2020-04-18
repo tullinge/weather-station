@@ -139,6 +139,15 @@ void setup()
 
     http1.end();
     Serial.println();
+    Serial.println("Everything ready!");
+    for (int x = 0; x < 3; x++)
+    {
+      digitalWrite(ledPinGreen, HIGH);
+      delay(100);
+      digitalWrite(ledPinGreen, LOW);
+      delay(100);
+    }
+    Serial.println();
   } //end if getting IP-address
 
 } //End setup
@@ -226,7 +235,7 @@ void loop()
     }
     else
     {
-      Serial.print("Error on sending POST: ");
+      Serial.print("Error in sending POST: ");
       Serial.println(httpResponseCode);
     }
 
@@ -240,12 +249,22 @@ void loop()
   {
     digitalWrite(ledPinRed, HIGH);
     watchdogCount++;
+    Serial.println();
     Serial.print("***Failed to connect: ");
     Serial.print(watchdogCount);
     Serial.println(" / 3***");
     if (watchdogCount == 3)
     {
       digitalWrite(ledPinRed, LOW);
+      delay(500);
+      for (int x = 0; x < 3; x++)
+      {
+        digitalWrite(ledPinRed, HIGH);
+        delay(100);
+        digitalWrite(ledPinRed, LOW);
+        delay(100);
+      }
+
       ESP.restart();
     }
   } //End if watchdog
