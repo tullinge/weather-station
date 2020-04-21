@@ -229,7 +229,7 @@ void loop()
       Serial.println(httpResponseCode); //Print return code
       Serial.print("Response: ");
       Serial.println(response);        //Print request answer
-      digitalWrite(ledPinGreen, HIGH); //Physical LED showing it is sent
+      digitalWrite(ledPinGreen, HIGH); //Physical LED showing data has been sent
       delay(3000);
       digitalWrite(ledPinGreen, LOW);
     }
@@ -265,10 +265,9 @@ void loop()
         delay(100);
       }
 
-      ESP.restart();
-    }
-  } //End if watchdog
-
-  delay(10000); //Wait for next reading
+      ESP.restart(); //Restart the ESP32 to get new IP-address
+    }                //End if watchdog
+  }                  //End if response != 200
+  delay(900000);     //Wait for next reading
 
 } //End void loop
