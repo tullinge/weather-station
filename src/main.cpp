@@ -31,8 +31,8 @@ int watchdogCount = 0;
 int httpResponseCode;
 
 //Network
-const char *ssid = "Shreks andra Nätverk"; //Insert ssid here
-const char *password = "Pepparkakan";      //Insert password
+const char *ssid = "";     //Insert ssid here
+const char *password = ""; //Insert password
 
 //Rain sensor
 const int rainSensorPin = 27;
@@ -62,7 +62,7 @@ void setup()
     Serial.println(".");
     dot++;
     delay(500);
-    if (dot == 12)
+    if (WiFi.status() == WL_CONNECTED)
     {
       break;
     }
@@ -125,30 +125,17 @@ void setup()
   Serial.println();
   Serial.println("Getting network IP-address");
 
-  if (WiFi.status() == WL_CONNECTED)
+  Serial.println();
+  Serial.println("Everything ready!");
+  for (int x = 0; x < 3; x++)
   {
-    http1.begin("http://api.ipify.org/");
-    errorCode = http1.GET();
-    IP = http1.getString();
-
-    Serial.print("Status Code: ");
-    Serial.println(errorCode);
-
-    Serial.print("IP-address ");
-    Serial.println(IP);
-
-    http1.end();
-    Serial.println();
-    Serial.println("Everything ready!");
-    for (int x = 0; x < 3; x++)
-    {
-      digitalWrite(ledPinGreen, HIGH);
-      delay(100);
-      digitalWrite(ledPinGreen, LOW);
-      delay(100);
-    }
-    Serial.println();
-  } //end if getting IP-address
+    digitalWrite(ledPinGreen, HIGH);
+    delay(100);
+    digitalWrite(ledPinGreen, LOW);
+    delay(100);
+  }
+  Serial.println();
+  //end if getting IP-address
 
 } //End setup
 
@@ -214,7 +201,7 @@ void loop()
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    http.begin("http://" + IP + ":69/measurements");
+    http.begin("http://192.168.1.91:69/measurements");
     http.addHeader("Content-Type", "application/json");
     httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
