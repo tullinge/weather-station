@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <base64.h>
 
 #define CCS811_ADDR 0x5B
 //Global sensor objects
@@ -29,6 +30,9 @@ String IP;
 int errorCode;
 int watchdogCount = 0;
 int httpResponseCode;
+String authUsername = "";
+String authPassword = "";
+String auth = base64::encode(authUsername + ":" + authPassword);
 
 //Network
 const char *ssid = "";     //Insert ssid here
@@ -122,8 +126,6 @@ void setup()
   }
   Serial.println();
   Serial.println("Sensor operational!");
-  Serial.println();
-  Serial.println("Getting network IP-address");
 
   Serial.println();
   Serial.println("Everything ready!");
@@ -203,6 +205,7 @@ void loop()
   {
     http.begin("http://192.168.1.91:69/measurements");
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", "Basic " + auth);
     httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
     {
