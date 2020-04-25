@@ -8,11 +8,30 @@
 - C++ libraties (Adafruit CCS811 Library, ArduinoJson, SparkFun BME280, SparkFun CCS811 Arduino Library)
 
 ## Instructions
+**Code (for troubleshooting and setup)** 
 
-To use the source code it is recommended to use Visual Studios with the extension PlatformIO. In PlatformIO you need to download the four required libraries. To upload actual code to the Weather station you need to click on the platformIO icon on the left most panel (ant shaped) and navigate to “project tasks” and then “Upload and monitor”. This opens a terminal showing you what is uploaded to the ESP32 and when thats is completed, what's printed by the weather station in the terminal. For the Weather station to be able to connect to the internet you need to insert your network ssid and your password in the code by the “ssid” and “password” const char. The weather station communicates with the API using the public IP-address of the API. This is automatically changed in the code using an API called Ipify but this can be changed to a static and hard coded IP-address that is not on the same network. To use the automatic IP inserter the weather station and the weather station API need to be connected to the same network. If the API is uploaded to a cloud based service you simply remove the Ipify part of the code and insert the IP-address of the cloud server.
+1. Install VS Code and C++
+2. Install platformIO in the extensions tab
+3. Install the necessary libraries from requirements
+4. Clone repository and upload the code to the ESP32 with “Upload and Monitor” in the “PROJECT TASKS” drop down menu in the platformIO tab
 
-Operating the weather station is very simply and only requires you to give it power through the USB contact and it starts running. The 2 LEDs in front shows if it’s running correctly. The green indicates that the data collected is sent to the API with a 200 response. If the setup works correctly then the green LED will be lit 3 times with a delay of 0,1 seconds. If the red LED is lit then something wrong has happened and the weather station doesn’t work. This can either be the climate sensor or an error in sending the data to the API. If this error recurs then the red LED will be lit 3 times with a delay of 0,1 seconds and the weather station will restart. 
+**Operating physical weather station**
 
+1. Plug in USB to a 5 volt power source
+2. Check for the green LED light to flash 3 times followed by one long. (If the red LED ever start to shine an error has occurred)
+
+
+## Troubleshooting
+
+- 3 green flashes = setup completed
+- 1 long green flash = http post request successful
+
+If the red LED starts to shine after giving the weather station power then 3 possible errors has occurred.
+1. Can't connect to wireless network.
+2. Error in ![BME280](https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/) sensor.
+3. Error in ![CCS811](https://cdn.sparkfun.com/assets/learn_tutorials/1/4/3/CCS811_Datasheet-DS000459.pdf) sensor.
+
+If the red LED starts to shine after the 3 green LED has flashes then the weather station has issues connecting to ![REST API](https://github.com/tullinge/weather-station-api).
 
 ## Contributors
 - Oskar Löf (JoeMamasXD) <Oskar.lof@skola.botkyrka.se>
