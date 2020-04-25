@@ -1,4 +1,6 @@
 # Weather Station
+![](Extras/weather-station.jpg)
+![](Extras/Schematics.png)
 ## Requirements
 - VS Code
 - C++
