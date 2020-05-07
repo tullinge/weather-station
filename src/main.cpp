@@ -59,12 +59,17 @@ void setup()
 
   while (WiFi.status() != WL_CONNECTED)
   {
+    digitalWrite(ledPinRed, HIGH);
+    digitalWrite(ledPinGreen, HIGH);
+
     delay(500);
     Serial.println(".");
     dot++;
     delay(500);
     if (WiFi.status() == WL_CONNECTED)
     {
+      digitalWrite(ledPinRed, LOW);
+      digitalWrite(ledPinGreen, LOW);
       break;
     }
   }
@@ -253,9 +258,9 @@ void loop()
         delay(100);
       }
 
-      ESP.restart(); //Restart the ESP32 to get new IP-address
-    }                //End if watchdog
-  }                  //End if response != 200
-  delay(900000);     //Wait for next reading
+      ESP.restart();
+    }            //End if watchdog
+  }              //End if response != 200
+  delay(900000); //Wait for next reading
 
 } //End void loop
