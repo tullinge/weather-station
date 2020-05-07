@@ -24,15 +24,12 @@ float windSpeedMax = 32;
 float windSpeed;
 
 //Server connection +Json
-HTTPClient http, http1;
+HTTPClient http;
 int dot = 0;
-String IP;
-int errorCode;
 int watchdogCount = 0;
 int httpResponseCode;
-String authUsername = "";
-String authPassword = "";
-String auth = base64::encode(authUsername + ":" + authPassword);
+String authUsername = ""; //Insert Admin authorization
+String authPassword = ""; // Insert Admin password
 
 //Network
 const char *ssid = "";     //Insert ssid here
@@ -205,6 +202,7 @@ void loop()
   {
     http.begin("http://192.168.1.91:69/measurements");
     http.addHeader("Content-Type", "application/json");
+    String auth = base64::encode(authUsername + ":" + authPassword);
     http.addHeader("Authorization", "Basic " + auth);
     httpResponseCode = http.POST(json);
     if (httpResponseCode > 0)
