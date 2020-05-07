@@ -24,6 +24,7 @@
 ## Troubleshooting
 
 - 3 green flashes = setup completed
+- Green + Red shine = Trying to connect to wifi
 - 1 long green flash = http post request successful
 
 If the red LED starts to shine after giving the weather station power then 3 possible errors has occurred.
