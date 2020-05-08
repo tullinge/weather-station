@@ -30,6 +30,7 @@ int watchdogCount = 0;
 int httpResponseCode;
 String authUsername = ""; //Insert Admin authorization
 String authPassword = ""; // Insert Admin password
+String auth = base64::encode(authUsername + ":" + authPassword);
 
 //Network
 const char *ssid = "";     //Insert ssid here
@@ -203,41 +204,35 @@ void loop()
 
   serializeJson(doc, json);
 
-  if (WiFi.status() == WL_CONNECTED)
+  http.begin("http://192.168.1.91:69/measurements");
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", "Basic " + auth);
+  delay(250);
+  httpResponseCode = http.POST(json);
+  if (httpResponseCode > 0)
   {
-    http.begin("http://192.168.1.91:69/measurements");
-    http.addHeader("Content-Type", "application/json");
-    String auth = base64::encode(authUsername + ":" + authPassword);
-    http.addHeader("Authorization", "Basic " + auth);
-    httpResponseCode = http.POST(json);
-    if (httpResponseCode > 0)
-    {
-      digitalWrite(ledPinRed, LOW); //reseting error LED
-      watchdogCount = 0;            //reseting watchdog
+    digitalWrite(ledPinRed, LOW); //reseting error LED
+    watchdogCount = 0;            //reseting watchdog
 
-      Serial.print("Json sent: ");
-      Serial.println(json);
-      String response = http.getString(); //Get the response to the request
-      Serial.print("Status code: ");
-      Serial.println(httpResponseCode); //Print return code
-      Serial.print("Response: ");
-      Serial.println(response);        //Print request answer
-      digitalWrite(ledPinGreen, HIGH); //Physical LED showing data has been sent
-      delay(3000);
-      digitalWrite(ledPinGreen, LOW);
-    }
-    else
-    {
-      Serial.print("Error in sending POST: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end(); //Free resources
-  }             //end wifi.status if
+    Serial.print("Json sent: ");
+    Serial.println(json);
+    String response = http.getString(); //Get the response to the request
+    Serial.print("Status code: ");
+    Serial.println(httpResponseCode); //Print return code
+    Serial.print("Response: ");
+    Serial.println(response);        //Print request answer
+    digitalWrite(ledPinGreen, HIGH); //Physical LED showing data has been sent
+    delay(3000);
+    digitalWrite(ledPinGreen, LOW);
+  }
   else
   {
-    Serial.println("Error in WiFi connection");
+    Serial.print("Error in sending POST: ");
+    Serial.println(httpResponseCode);
   }
+
+  http.end(); //Free resources
+
   if (httpResponseCode != 200)
   {
     digitalWrite(ledPinRed, HIGH);
