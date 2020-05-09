@@ -28,13 +28,14 @@ HTTPClient http;
 int dot = 0;
 int watchdogCount = 0;
 int httpResponseCode;
-String authUsername = ""; //Insert Admin authorization
-String authPassword = ""; // Insert Admin password
+boolean successfulConnection;
+String authUsername = "Admin"; //Insert Admin authorization
+String authPassword = "Te17";  // Insert Admin password
 String auth = base64::encode(authUsername + ":" + authPassword);
 
 //Network
-const char *ssid = "";     //Insert ssid here
-const char *password = ""; //Insert password
+const char *ssid = "Shreks andra Nätverk"; //Insert ssid here
+const char *password = "Pepparkakan";      //Insert password
 
 //Rain sensor
 const int rainSensorPin = 27;
@@ -204,7 +205,7 @@ void loop()
 
   serializeJson(doc, json);
 
-  http.begin("http://192.168.1.91:69/measurements");
+  http.begin("http://92.35.103.221:69/measurements");
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Basic " + auth);
   delay(250);
@@ -213,7 +214,7 @@ void loop()
   {
     digitalWrite(ledPinRed, LOW); //reseting error LED
     watchdogCount = 0;            //reseting watchdog
-
+    successfulConnection = true;
     Serial.print("Json sent: ");
     Serial.println(json);
     String response = http.getString(); //Get the response to the request
@@ -235,6 +236,7 @@ void loop()
 
   if (httpResponseCode != 200)
   {
+    successfulConnection = false;
     digitalWrite(ledPinRed, HIGH);
     watchdogCount++;
     Serial.println();
@@ -243,8 +245,8 @@ void loop()
     Serial.println(" / 3***");
     if (watchdogCount == 3)
     {
+      delay(900000);
       digitalWrite(ledPinRed, LOW);
-      delay(500);
       for (int x = 0; x < 3; x++)
       {
         digitalWrite(ledPinRed, HIGH);
@@ -254,8 +256,17 @@ void loop()
       }
 
       ESP.restart();
-    }            //End if watchdog
-  }              //End if response != 200
-  delay(900000); //Wait for next reading
+    } //End if watchdog
+  }   //End if response != 200
+      //Wait for next reading
+
+  if (successfulConnection == true)
+  {
+    delay(900000);
+  }
+  else
+  {
+    delay(60000);
+  }
 
 } //End void loop
