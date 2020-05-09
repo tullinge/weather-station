@@ -29,13 +29,14 @@ int dot = 0;
 int watchdogCount = 0;
 int httpResponseCode;
 boolean successfulConnection;
-String authUsername = "Admin"; //Insert Admin authorization
-String authPassword = "Te17";  // Insert Admin password
+String authUsername = ""; //Insert Admin authorization
+String authPassword = ""; // Insert Admin password
+String IP = "";           //Insert IP Address
 String auth = base64::encode(authUsername + ":" + authPassword);
 
 //Network
-const char *ssid = "Shreks andra Nätverk"; //Insert ssid here
-const char *password = "Pepparkakan";      //Insert password
+const char *ssid = "";     //Insert ssid
+const char *password = ""; //Insert password
 
 //Rain sensor
 const int rainSensorPin = 27;
@@ -205,7 +206,7 @@ void loop()
 
   serializeJson(doc, json);
 
-  http.begin("http://92.35.103.221:69/measurements");
+  http.begin("http://" + IP + ":69/measurements");
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Basic " + auth);
   delay(250);
