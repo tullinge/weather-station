@@ -13,7 +13,8 @@
 1. Install VS Code and C++
 2. Install platformIO in the extensions tab
 3. Install the necessary libraries from requirements
-4. Clone repository and upload the code to the ESP32 with “Upload and Monitor” in the “PROJECT TASKS” drop down menu in the platformIO tab
+4. Change necessary variables in the code such as ssid, passwords
+5. Clone repository and upload the code to the ESP32 with “Upload and Monitor” in the “PROJECT TASKS” drop down menu in the platformIO tab
 
 **Operating physical weather station**
 
