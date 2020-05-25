@@ -160,9 +160,10 @@ void loop()
     RAIN = "false";
   }
 
-  float sensorValue = analogRead(windSensorPin);
-  float sensorVoltage = sensorValue / (4095 / 2); //ADC to voltage
-  //0 volt = 0 ADC2.0 volt = 4095 ADC
+  float sensorADCValue = analogRead(windSensorPin);
+  float sensorVoltage = sensorADCValue / (4095 / 2); //ADC to voltage
+  //0.0 volt = 0.0 ADC
+  //2.0 volt = 4095 ADC
 
   if (sensorVoltage <= voltageMin)
   {
