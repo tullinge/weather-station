@@ -36,6 +36,6 @@ If the red LED starts to shine after giving the weather station power then 3 pos
 If the red LED starts to shine after the 3 green flashes then the weather station has issues connecting to [REST API](https://github.com/tullinge/weather-station-api).
 
 ## Contributors
-- Oskar Löf (JoeMamasXD) <Oskar.lof@skola.botkyrka.se>
-- Max Lundberg (Fajterman) <Max.lunberg@skola.botkyrka.se>
+- Oskar Löf (JoeMamasXD) <oskar.lof@skola.botkyrka.se>
+- Max Lundberg (Fajterman) <max.lundberg@skola.botkyrka.se>
 
