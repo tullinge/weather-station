@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <base64.h>
+#include "config.h"
 
 #define CCS811_ADDR 0x5B
 //Global sensor objects
@@ -29,14 +30,13 @@ int dot = 0;
 int watchdogCount = 0;
 int httpResponseCode;
 boolean successfulConnection;
-String authUsername = ""; //Insert Admin authorization
-String authPassword = ""; // Insert Admin password
-String IP = "";           //Insert IP Address
-String auth = base64::encode(authUsername + ":" + authPassword);
 
-//Network
-const char *ssid = "";     //Insert ssid
-const char *password = ""; //Insert password
+
+// API
+String apiUrl = API_URL;
+String apiUsername = API_USERNAME;
+String apiPassword = API_PASSWORD;
+String auth = base64::encode(apiUsername + ":" + apiPassword);
 
 //Rain sensor
 const int rainSensorPin = 27;
@@ -52,7 +52,7 @@ void setup()
   Serial.begin(9600);
 
   delay(500);
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   Serial.println();
   Serial.println("Trying to connect to WiFi");
@@ -198,20 +198,24 @@ void loop()
   String TVOC = String(CCS811TVOC, DEC);
 
   DynamicJsonDocument doc(2048);
-  doc["Temp"] = TEMP;
-  doc["Hum"] = HUM;
-  doc["Press"] = PRES;
+  doc["temperature"] = TEMP;
+  doc["humidity"] = HUM;
+  doc["pressure"] = PRES;
   doc["CO2"] = CO2;
   doc["TVOC"] = TVOC;
-  doc["Rain"] = RAIN;
-  doc["Wind"] = WIND;
+  doc["rain"] = RAIN;
+  doc["wind"] = WIND;
 
   serializeJson(doc, json);
 
-  http.begin("http://" + IP + ":69/measurements");
+  http.begin(apiUrl + "/measurement");
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Basic " + auth);
   delay(250);
+  Serial.print("Posting to ");
+  Serial.print(apiUrl);
+  Serial.println("/measurement");
+
   httpResponseCode = http.POST(json);
   if (httpResponseCode > 0)
   {
@@ -237,7 +241,7 @@ void loop()
 
   http.end(); //Free resources
 
-  if (httpResponseCode != 200)
+  if (httpResponseCode != 201)
   {
     successfulConnection = false;
     digitalWrite(ledPinRed, HIGH);

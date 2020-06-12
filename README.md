@@ -1,22 +1,31 @@
 # Weather Station
 ![](Extras/weather-station.jpg)
 ![](Extras/Schematics.png)
+
 ## Requirements
+
 - VS Code
 - C++
-- platformIO 
-- C++ libraties (Adafruit CCS811 Library, ArduinoJson, SparkFun BME280, SparkFun CCS811 Arduino Library)
+- PlatformIO 
+- C++ libraries (Adafruit CCS811 Library, ArduinoJson, SparkFun BME280, SparkFun CCS811 Arduino Library)
 
 ## Instructions
-**Code (for troubleshooting and setup)** 
 
-1. Install VS Code and C++
-2. Install platformIO in the extensions tab
-3. Install the necessary libraries from requirements
-4. Change necessary variables in the code such as ssid, passwords
-5. Clone repository and upload the code to the ESP32 with “Upload and Monitor” in the “PROJECT TASKS” drop down menu in the platformIO tab
+### Configuration
 
-**Operating physical weather station**
+Create `src/config.h` with the following format
+````
+// WIFI configuration
+#define WIFI_SSID "the wifi ssid"
+#define WIFI_PASSWORD "the wifi password"
+
+// API configuration
+#define API_USERNAME "weatherstation"
+#define API_URL "https://theactualapi.org"
+#define API_PASSWORD "donotuseinproduction"
+````
+
+### Operating physical weather station
 
 1. Plug in USB to a 5 volt power source
 2. Check for the green LED light to flash 3 times followed by one long. (If the red LED ever start to shine an error has occurred)
@@ -35,7 +44,20 @@ If the red LED starts to shine after giving the weather station power then 3 pos
 
 If the red LED starts to shine after the 3 green flashes then the weather station has issues connecting to [REST API](https://github.com/tullinge/weather-station-api).
 
+## Data format
+````
+{
+    "CO2": "0",
+    "humidity": "34.5078125000",
+    "rain": "false",
+    "TVOC": "0",
+    "temperature": "28.0100002289",
+    "wind": "0.0000000000",
+    "pressure": "99050"
+}
+````
+
 ## Contributors
 - Oskar Löf (JoeMamasXD) <oskar.lof@skola.botkyrka.se>
 - Max Lundberg (Fajterman) <max.lundberg@skola.botkyrka.se>
-
+- Einar Persson <einar.persson@botkyrka.se>
